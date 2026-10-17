@@ -80,7 +80,8 @@ jobs:
       - name: Build recovery image
         shell: bash
         run: |
-          set -euo pipefail
+          # Android envsetup.sh reads optional variables before they are set.
+          set -eo pipefail
           source build/envsetup.sh
           lunch "twrp_${DEVICE}-eng"
           mka recoveryimage -j"$(nproc)"
