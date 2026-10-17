@@ -80,11 +80,23 @@ jobs:
       - name: Build recovery image
         shell: bash
         run: |
-          # Android envsetup.sh reads optional variables before they are set.
-          set -eo pipefail
+          test -f build/envsetup.sh
+          # Android envsetup.sh is written for a regular interactive Bash shell.
+          set +eu
           source build/envsetup.sh
-          lunch "twrp_${DEVICE}-eng"
-          mka recoveryimage -j"$(nproc)"
+          set -eo pipefail
+          if ! type lunch >/dev/null 2>&1 || ! type mka >/dev/null 2>&1; then
+            echo 'TWRP build commands are unavailable after sourcing envsetup.sh' >&2
+            exit 1
+          fi
+          if ! lunch "twrp_${DEVICE}-eng"; then
+            echo "Failed to select twrp_${DEVICE}-eng" >&2
+            exit 1
+          fi
+          if ! mka recoveryimage -j"$(nproc)"; then
+            echo "Failed to build recoveryimage for ${DEVICE}" >&2
+            exit 1
+          fi
           test -s "out/target/product/${DEVICE}/recovery.img"
 
       - name: Package Odin tar
