@@ -23,15 +23,18 @@ match the `vanilla-oneui` ZIP from the
 ## Build with GitHub Actions
 
 Run **Build TWRP recovery** manually. Its matrix builds the four products
-independently and uploads `recovery-dm1q`, `recovery-dm2q`, `recovery-dm3q`, and
-`recovery-q5q` artifacts. The workflow does not flash devices or package a
-single auto-selecting installer ZIP.
+independently on GitHub-hosted Ubuntu 22.04 runners and uploads `recovery-dm1q`,
+`recovery-dm2q`, `recovery-dm3q`, and `recovery-q5q` artifacts. Each artifact
+contains `recovery.img` and an Odin-ready `.img.tar` containing
+`recovery.img.lz4`. The workflow does not flash devices or package a single
+auto-selecting installer ZIP.
 
-The workflow uses a Linux x86-64 self-hosted runner with the `twrp` label. The
-runner needs enough disk space for TWRP 12.1 sources and build output, and the
-usual Android build dependencies, including the `repo` command. The workflow
-initializes the [TWRP 12.1 minimal manifest](https://github.com/minimal-manifest-twrp/platform_manifest_twrp_aosp)
-and syncs sources before building. It runs only through `workflow_dispatch`.
+The workflow frees runner disk space, installs Android build dependencies,
+Java 11, and `repo`, then initializes the
+[TWRP 12.1 minimal manifest](https://github.com/minimal-manifest-twrp/platform_manifest_twrp_aosp)
+and syncs sources before building. It follows the hosted-runner setup in
+[Action-Recovery-Builder](https://github.com/richter-coding-888/Action-Recovery-Builder/blob/ui9/.github/workflows/build.yml)
+and runs only through `workflow_dispatch`.
 
 ## Local source layout
 

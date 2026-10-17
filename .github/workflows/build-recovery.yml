@@ -9,7 +9,7 @@ permissions:
 jobs:
   recovery:
     name: recovery-${{ matrix.device }}
-    runs-on: [self-hosted, linux, x64, twrp]
+    runs-on: ubuntu-22.04
     timeout-minutes: 360
     strategy:
       fail-fast: false
@@ -24,12 +24,47 @@ jobs:
         with:
           path: device/samsung/sm8550-common
 
+      - name: Free build space
+        uses: rokibhasansagar/slimhub_actions@c2a6e4317d3de2b623ac7395b05e9d2149e8289b
+        with:
+          retain: nodejs_npm
+
+      - name: Install build dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y \
+            bc bison build-essential ccache curl flex g++-multilib gcc-multilib \
+            git gnupg gperf lib32z1-dev libelf-dev liblz4-tool \
+            libncurses5-dev libssl-dev libxml2-utils lz4 lzop pngcrush \
+            rsync schedtool squashfs-tools unzip xsltproc zip zlib1g-dev
+          df -h .
+
+      - name: Set up Java 11
+        uses: actions/setup-java@v4
+        with:
+          distribution: zulu
+          java-version: '11'
+
+      - name: Install repo
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/bin"
+          curl -fsSL https://storage.googleapis.com/git-repo-downloads/repo -o "$RUNNER_TEMP/bin/repo"
+          chmod +x "$RUNNER_TEMP/bin/repo"
+          echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
+
       - name: Sync TWRP 12.1 sources
         shell: bash
         run: |
           set -euo pipefail
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email '41898282+github-actions[bot]@users.noreply.github.com'
           repo init --depth=1 -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_aosp.git -b twrp-12.1
           repo sync -c --no-clone-bundle --no-tags -j4
+          df -h .
 
       - name: Link device trees
         shell: bash
@@ -51,9 +86,20 @@ jobs:
           mka recoveryimage -j"$(nproc)"
           test -s "out/target/product/${DEVICE}/recovery.img"
 
-      - name: Upload recovery image
+      - name: Package Odin tar
+        shell: bash
+        run: |
+          set -euo pipefail
+          product_out="out/target/product/${DEVICE}"
+          lz4 -f -B6 --content-size "$product_out/recovery.img" "$product_out/recovery.img.lz4"
+          tar -C "$product_out" -cf "$product_out/twrp-${DEVICE}-recovery.img.tar" recovery.img.lz4
+          test -s "$product_out/twrp-${DEVICE}-recovery.img.tar"
+
+      - name: Upload recovery images
         uses: actions/upload-artifact@v4
         with:
           name: recovery-${{ matrix.device }}
-          path: out/target/product/${{ matrix.device }}/recovery.img
+          path: |
+            out/target/product/${{ matrix.device }}/recovery.img
+            out/target/product/${{ matrix.device }}/twrp-${{ matrix.device }}-recovery.img.tar
           if-no-files-found: error
