@@ -20,4 +20,5 @@ $(call inherit-product, vendor/twrp/config/common.mk)
 # Inherit device configuration
 $(call inherit-product, device/samsung/$(PRODUCT_COMMON_NAME)/common.mk)
 
-PRODUCT_COPY_FILES += $(call find-copy-subdir-files,*,device/samsung/$(PRODUCT_COMMON_NAME)/recovery/root,recovery/root)
+# Each device supplies its own first-stage recovery module load list.
+PRODUCT_COPY_FILES += $(filter-out %/lib/modules/modules.load.recovery,$(call find-copy-subdir-files,*,device/samsung/$(PRODUCT_COMMON_NAME)/recovery/root,recovery/root))
