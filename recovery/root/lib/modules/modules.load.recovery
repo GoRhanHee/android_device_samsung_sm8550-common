@@ -142,7 +142,6 @@ ipa_fmwk.ko
 ipam.ko
 ipanetm.ko
 isg6320.ko
-qca_cld3_kiwi_v2.ko
 kperfmon.ko
 lcd.ko
 leds-gpio.ko
@@ -266,7 +265,6 @@ q6_notifier_dlkm.ko
 q6_pdr_dlkm.ko
 qbt2000_common.ko
 qbt2000_spidev.ko
-qca_cld3_qca6490.ko
 qce50_dlkm.ko
 qcedev-mod_dlkm.ko
 qcom-cpufreq-hw-debug.ko
