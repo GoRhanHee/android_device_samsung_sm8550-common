@@ -1,7 +1,7 @@
 $(call inherit-product, device/samsung/sm8550-common/twrp_sm8550.mk)
 
 PRODUCT_COPY_FILES += \
-    device/samsung/sm8550-common/devices/q5q/modules.load.recovery:recovery/root/lib/modules/modules.load.recovery
+    device/samsung/sm8550-common/recovery/root/lib/modules/modules.load.recovery:recovery/root/lib/modules/modules.load.recovery
 
 PRODUCT_COPY_FILES += \
     device/samsung/sm8550-common/prebuilt/q5q/tsp_stm/fst2ba61y_q5.bin:recovery/root/vendor/firmware_mnt/image/tsp_stm/fst2ba61y_q5.bin \

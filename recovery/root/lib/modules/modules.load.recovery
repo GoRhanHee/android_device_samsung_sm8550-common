@@ -90,7 +90,6 @@ flicker_sensor.ko
 flicker_test.ko
 frpc-adsprpc.ko
 fsa4480-i2c.ko
-fst2ba61y_i2c.ko
 fst2ca78y_spi.ko
 fst3ca60y_i2c.ko
 gcc-crow.ko
