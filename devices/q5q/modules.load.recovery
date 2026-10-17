@@ -130,7 +130,6 @@ msm_drm.ko
 pm8941-pwrkey.ko
 qti_battery_charger.ko
 sec-battery.ko
-fst2ba61y_i2c.ko
 fst2ca78y_spi.ko
 fst3ca60y_i2c.ko
 sec-dual-battery.ko
