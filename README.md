@@ -1,22 +1,61 @@
-# TWRP common device tree for samsung galaxy with snapdragon 8 gen 2
+# Samsung SM8550 TWRP device trees
 
-## Supported devices:
-| Model                      | Codename |
-| ---------------------------: | :-----------------------|
-| Galaxy S23 5G Series | `dm1q`  `dm2q` `dm3q` |
-| Galaxy Z Flip/Fold 5 5G Series | `b5q` `q5q` |
-| Galaxy Tab S9 5G/WiFi Series | `gts9` `gts9p` `gts9u` `gts9wifi` `gts9pwifi` `gts9uwifi` |       
+This repository keeps the shared recovery configuration and the device profiles
+for `dm1q`, `dm2q`, `dm3q`, and `q5q` together. `b5q` is not configured yet.
 
-## Kernel source:
-[Here](https://github.com/GoRhanHee/android_kernel_samsung_sm8550_q5q.git)
+| Device | Recovery partition size | Device-specific inputs |
+| --- | ---: | --- |
+| `dm1q` | 109051904 | `prebuilt/dm1q/dtb`, `prebuilt/dm1q/recovery_dtbo` |
+| `dm2q` | 109051904 | `prebuilt/dm2q/dtb`, `prebuilt/dm2q/recovery_dtbo` |
+| `dm3q` | 109051904 | `prebuilt/dm3q/dtb`, `prebuilt/dm3q/recovery_dtbo` |
+| `q5q` | 109576192 | `prebuilt/q5q/dtb`, `prebuilt/q5q/recovery_dtbo`, touch firmware |
 
-## Clone repo:
+Each profile under `devices/` supplies its own `BoardConfig.mk` and product
+makefiles. The profiles inherit `BoardConfigCommon.mk` and `twrp_sm8550.mk`,
+which contain the shared kernel, modules, fstab, and recovery resources. Only
+the `q5q` product copies the three `prebuilt/q5q/tsp_stm/*.bin` files into its
+recovery ramdisk.
+
+The shared `prebuilt/Image` and all 540 files in `recovery/root/lib/modules`
+match the `vanilla-oneui` ZIP from the
+[v2026.10.16 kernel release](https://github.com/GoRhanHee/android_kernel_samsung_sm8550/releases/tag/v2026.10.16).
+
+## Build with GitHub Actions
+
+Run **Build TWRP recovery** manually. Its matrix builds the four products
+independently and uploads `recovery-dm1q`, `recovery-dm2q`, `recovery-dm3q`, and
+`recovery-q5q` artifacts. The workflow does not flash devices or package a
+single auto-selecting installer ZIP.
+
+The workflow uses a Linux x86-64 self-hosted runner with the `twrp` label. The
+runner needs enough disk space for TWRP 12.1 sources and build output, and the
+usual Android build dependencies, including the `repo` command. The workflow
+initializes the [TWRP 12.1 minimal manifest](https://github.com/minimal-manifest-twrp/platform_manifest_twrp_aosp)
+and syncs sources before building. It runs only through `workflow_dispatch`.
+
+## Local source layout
+
+Check this repository out as `device/samsung/sm8550-common` in a TWRP 12.1
+source tree, then run:
+
 ```bash
-git clone -b android-12.1 https://github.com/richtermalibudev888/android_device_samsung_sm8550-common.git device/samsung/sm8550-common
+bash device/samsung/sm8550-common/scripts/link-device-trees.sh
 ```
 
-## Special Thanks:
-[GoRhanHee](https://github.com/GoRhanHee) for prebuilt kernel
+The script links the four profiles as `device/samsung/<codename>` and refuses
+to replace an existing device tree. Add the
+[`device/qcom/twrp-common`](https://github.com/TeamWin/android_device_qcom_twrp-common)
+dependency before selecting `twrp_<codename>-eng` and building
+`recoveryimage`.
 
-[Hunter](https://github.com/devhunter1) for AVB digest patch
+## q5q touch firmware
+
+The three touch firmware files came from
+[`richter-coding-888/android_device_samsung_q5q`](https://github.com/richter-coding-888/android_device_samsung_q5q/tree/5fe28fe8b865f77d62d18de9b6925ba2573e4c20/recovery/root/vendor/firmware_mnt/image/tsp_stm).
+The shared `init.recovery.qcom.rc` mounts `apnhlos` at
+`/vendor/firmware_mnt`; a successful mount hides ramdisk files under that
+directory. Check firmware visibility and touch input on a q5q device before
+relying on this recovery image.
+
+The AVB digest patch is credited to [Hunter](https://github.com/devhunter1).
 

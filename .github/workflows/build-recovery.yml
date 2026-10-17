@@ -1,0 +1,59 @@
+name: Build TWRP recovery
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  recovery:
+    name: recovery-${{ matrix.device }}
+    runs-on: [self-hosted, linux, x64, twrp]
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      matrix:
+        device: [dm1q, dm2q, dm3q, q5q]
+    env:
+      DEVICE: ${{ matrix.device }}
+      ALLOW_MISSING_DEPENDENCIES: "true"
+    steps:
+      - name: Check out device trees
+        uses: actions/checkout@v4
+        with:
+          path: device/samsung/sm8550-common
+
+      - name: Sync TWRP 12.1 sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          repo init --depth=1 -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_aosp.git -b twrp-12.1
+          repo sync -c --no-clone-bundle --no-tags -j4
+
+      - name: Link device trees
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! -d device/qcom/twrp-common ]]; then
+            git clone --depth=1 --branch android-12.1 \
+              https://github.com/TeamWin/android_device_qcom_twrp-common.git \
+              device/qcom/twrp-common
+          fi
+          bash device/samsung/sm8550-common/scripts/link-device-trees.sh
+
+      - name: Build recovery image
+        shell: bash
+        run: |
+          set -euo pipefail
+          source build/envsetup.sh
+          lunch "twrp_${DEVICE}-eng"
+          mka recoveryimage -j"$(nproc)"
+          test -s "out/target/product/${DEVICE}/recovery.img"
+
+      - name: Upload recovery image
+        uses: actions/upload-artifact@v4
+        with:
+          name: recovery-${{ matrix.device }}
+          path: out/target/product/${{ matrix.device }}/recovery.img
+          if-no-files-found: error
