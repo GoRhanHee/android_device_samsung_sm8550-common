@@ -9,7 +9,7 @@ if [[ "$(basename "$common_dir")" != sm8550-common || "$(basename "$samsung_dir"
   exit 1
 fi
 
-for device in b5q dm1q dm2q dm3q q5q; do
+for device in dm1q dm2q dm3q q5q b5q; do
   link="$samsung_dir/$device"
   target="sm8550-common/devices/$device"
   if [[ -e "$link" || -L "$link" ]]; then
